@@ -6,25 +6,24 @@ import guru.springframework.repositories.reactive.CategoryReactiveRepository;
 import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Optional;
-
 import static org.junit.Assert.assertEquals;
-
-/**
- * Created by jt on 6/17/17.
- */
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
 @DataMongoTest
-public class UnitOfMeasureRepositoryIT {
+public class ReactiveReposIT {
+    @Autowired
+    UnitOfMeasureReactiveRepository uomReacRepo;
+    @Autowired
+    CategoryReactiveRepository catReacRepo;
+    @Autowired
+    RecipeReactiveRepository recipeReacRepo;
 
     @Autowired
     UnitOfMeasureRepository unitOfMeasureRepository;
@@ -32,7 +31,6 @@ public class UnitOfMeasureRepositoryIT {
     RecipeRepository recipeRepository;
     @Autowired
     CategoryRepository categoryRepository;
-
 
     @Before
     public void setUp() throws Exception {
@@ -45,20 +43,19 @@ public class UnitOfMeasureRepositoryIT {
     }
 
     @Test
-    public void findByDescription() throws Exception {
-
-        Optional<UnitOfMeasure> uomOptional = unitOfMeasureRepository.findByDescription("Teaspoon");
-
-        assertEquals("Teaspoon", uomOptional.get().getDescription());
+    public void testCounts() {
+        assertEquals(Long.valueOf(8), uomReacRepo.count().block());
+        assertEquals(Long.valueOf(4), catReacRepo.count().block());
+        assertEquals(Long.valueOf(2), recipeReacRepo.count().block());
     }
 
     @Test
-    public void findByDescriptionCup() throws Exception {
+    public void testFindByDescription() {
+        UnitOfMeasure uom1 = new UnitOfMeasure();
+        uom1.setDescription("addedUom");
 
-        Optional<UnitOfMeasure> uomOptional = unitOfMeasureRepository.findByDescription("Cup");
+        uomReacRepo.save(uom1).block(); //publisher must be consumed (block method) for save to occur
 
-        assertEquals("Cup", uomOptional.get().getDescription());
+        assertNotNull(uomReacRepo.findByDescription("addedUom").block());
     }
-
-
 }
